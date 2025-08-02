@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StudyMate - PDF Q&A Extractor</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #f0f4f8;
+      color: #333;
+    }
+
+    header {
+      background-color: #0077b6;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    }
+
+    input[type="file"] {
+      display: block;
+      margin: 20px 0;
+      padding: 10px;
+    }
+
+    button {
+      background-color: #00b4d8;
+      border: none;
+      padding: 12px 20px;
+      color: white;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0096c7;
+    }
+
+    #message {
+      margin-top: 10px;
+      font-weight: bold;
+      color: green;
+    }
+
+    .qna-section {
+      margin-top: 30px;
+    }
+
+    .qna-item {
+      background: #f9f9f9;
+      margin-bottom: 15px;
+      padding: 15px;
+      border-left: 4px solid #0077b6;
+      border-radius: 6px;
+    }
+
+    .question {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .answer {
+      margin-left: 10px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #0077b6;
+      color: white;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📘 StudyMate - PDF Q&A Extractor</h1>
+  </header>
+
+  <div class="container">
+    <h2>Select a PDF file with Questions & Answers</h2>
+    <input type="file" id="pdfFile" accept=".pdf" />
+    <button onclick="uploadPDF()">Upload and Extract</button>
+    <div id="message"></div>
+
+    <div class="qna-section" id="qnaContainer"></div>
+  </div>
+
+  <footer>
+    &copy; 2025 StudyMate. Built for learning.
+  </footer>
+
+  <script>
+    function uploadPDF() {
+      const fileInput = document.getElementById("pdfFile");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        document.getElementById("message").textContent = "Please select a file.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      document.getElementById("message").textContent = "Uploading...";
+
+      fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        const msg = document.getElementById("message");
+        const qnaContainer = document.getElementById("qnaContainer");
+        qnaContainer.innerHTML = "";
+
+        if (data.status === "success") {
+          msg.textContent = "✅ PDF processed successfully!";
+          data.data.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "qna-item";
+
+            div.innerHTML = `
+              <div class="question">Q: ${item.question}</div>
+              <div class="answer">A: ${item.answer}</div>
+            `;
+            qnaContainer.appendChild(div);
+          });
+        } else {
+          msg.textContent = "❌ Error: " + data.message;
+        }
+      })
+      .catch(err => {
+        document.getElementById("message").textContent = "❌ Upload failed: " + err.message;
+      });
+    }
+  </script>
+
+</body>
+</html>
